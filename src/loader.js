@@ -9,6 +9,8 @@ import LibraryTemplatePlugin from 'webpack/lib/LibraryTemplatePlugin';
 import SingleEntryPlugin from 'webpack/lib/SingleEntryPlugin';
 import LimitChunkCountPlugin from 'webpack/lib/optimize/LimitChunkCountPlugin';
 
+import styleLoader from 'style-loader';
+
 const NS = path.dirname(fs.realpathSync(__filename));
 
 const exec = (loaderContext, code, filename) => {
@@ -28,8 +30,24 @@ const findModuleById = (modules, id) => {
   return null;
 };
 
+let hasRun = false;
+let hasReg = false;
+
+// eslint-disable-next-line consistent-return
 export function pitch(request) {
   const query = loaderUtils.getOptions(this) || {};
+
+  if (process.env.NODE_ENV === 'development' && !hasReg) {
+    hasReg = true;
+    this._compiler.hooks.done.tap('mini-css-extract-plugin done', () => {
+      hasRun = true;
+    });
+  }
+
+  if (hasRun) {
+    return styleLoader.pitch(request);
+  }
+
   const loaders = this.loaders.slice(this.loaderIndex + 1);
   this.addDependency(this.resourcePath);
   const childFilename = '*'; // eslint-disable-line no-path-concat
@@ -141,4 +159,5 @@ export function pitch(request) {
     return callback(null, resultSource);
   });
 }
+
 export default function() {}
