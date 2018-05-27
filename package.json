@@ -1,44 +1,42 @@
 {
-  "name": "mini-css-extract-plugin",
-  "version": "0.4.0",
-  "description": "desc",
-  "license": "MIT",
-  "repository": "webpack-contrib/mini-css-extract-plugin",
-  "author": "Tobias Koppers @sokra",
-  "homepage": "https://github.com/webpack-contrib/mini-css-extract-plugin",
-  "bugs": "https://github.com/webpack-contrib/mini-css-extract-plugin/issues",
-  "bin": "",
-  "main": "dist/cjs.js",
+  "name": "extract-css-chunks-webpack-plugin",
+  "version": "0.0.0-placeholder",
+  "author": "James Gillmore <james@faceyspacey.com>",
+  "description": "Extract CSS from chunks into stylesheets + HMR",
   "engines": {
     "node": ">= 6.9.0 <7.0.0 || >= 8.9.0"
   },
-  "scripts": {
-    "start": "npm run build -- -w",
-    "build": "cross-env NODE_ENV=production babel src -d dist --ignore 'src/**/*.test.js' --copy-files",
-    "clean": "del-cli dist",
-    "commitlint": "commitlint",
-    "commitmsg": "commitlint -e $GIT_PARAMS",
-    "lint": "eslint --cache src test",
-    "ci:lint:commits": "commitlint --from=${CIRCLE_BRANCH} --to=${CIRCLE_SHA1}",
-    "lint-staged": "lint-staged",
-    "prebuild": "npm run clean",
-    "prepublish": "npm run build",
-    "release": "standard-version",
-    "release:ci": "conventional-github-releaser -p angular",
-    "release:validate": "commitlint --from=$(git describe --tags --abbrev=0) --to=$(git rev-parse HEAD)",
-    "security": "nsp check",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --collectCoverageFrom='src/**/*.js' --coverage",
-    "test:manual": "webpack-dev-server test/manual/src/index.js --open --config test/manual/webpack.config.js",
-    "ci:lint": "npm run lint && npm run security",
-    "ci:test": "npm run test -- --runInBand",
-    "ci:coverage": "npm run test:coverage -- --runInBand",
-    "defaults": "webpack-defaults"
-  },
+  "main": "dist/cjs.js",
   "files": [
     "dist"
   ],
+  "license": "MIT",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel src -d dist --ignore 'src/**/*.test.js' --copy-files",
+    "ci:coverage": "npm run test:coverage -- --runInBand",
+    "ci:lint": "npm run lint && npm run security",
+    "ci:lint:commits": "commitlint --from=${CIRCLE_BRANCH} --to=${CIRCLE_SHA1}",
+    "ci:test": "npm run test -- --runInBand",
+    "clean": "del-cli dist",
+    "defaults": "webpack-defaults",
+    "lint": "eslint --cache src test",
+    "prebuild": "npm run clean",
+    "prepack": "npm i && rm -rf ./node_modules",
+    "prepublish": "npm run build",
+    "release:ci": "conventional-github-releaser -p angular",
+    "release:validate": "commitlint --from=$(git describe --tags --abbrev=0) --to=$(git rev-parse HEAD)",
+    "security": "nsp check",
+    "start": "npm run build -- -w",
+    "test": "jest",
+    "test:coverage": "jest --collectCoverageFrom='src/**/*.js' --coverage",
+    "test:manual": "npm run build && webpack-dev-server test/manual/src/index.js --config test/manual/webpack.config.js",
+    "test:watch": "jest --watch",
+    "build:example": "(cd example && webpack)",
+    "cm": "git-cz",
+    "release": "standard-version",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "travis": "npm run cover -- --report lcovonly"
+  },
   "peerDependencies": {
     "webpack": "^4.4.0"
   },
@@ -77,14 +75,14 @@
     "webpack-defaults": "^2.3.0",
     "webpack-dev-server": "^3.1.1"
   },
-  "keywords": [
-    "webpack"
-  ],
-  "pre-commit": "lint-staged",
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ]
+  "homepage": "http://github.com/faceyspacey/extract-css-chunks-webpack-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/faceyspacey/extract-css-chunks-webpack-plugin.git"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }

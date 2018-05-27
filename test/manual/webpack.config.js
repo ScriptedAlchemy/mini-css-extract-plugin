@@ -1,6 +1,8 @@
 const Self = require('../../');
+const path = require('path');
+const webpack = require('webpack');
 
-module.exports = {
+const poop = {
   mode: 'development',
   output: {
     chunkFilename: "[contenthash].js",
@@ -11,7 +13,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          Self.loader,
+          {loader: Self.loader},
           'css-loader',
         ],
       },
@@ -22,8 +24,14 @@ module.exports = {
       filename: '[name].css',
       chunkFilename: "[contenthash].css",
     }),
+
+    new webpack.NamedModulesPlugin(),
+    new webpack.HotModuleReplacementPlugin()
   ],
   devServer: {
     contentBase: __dirname,
+    hot: true
   },
 };
+
+module.exports = poop

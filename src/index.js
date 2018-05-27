@@ -4,8 +4,10 @@ import path from 'path';
 import webpack from 'webpack';
 import sources from 'webpack-sources';
 
-const { ConcatSource, SourceMapSource, OriginalSource } = sources;
-const { Template, util: { createHash } } = webpack;
+const thing = path.resolve(__dirname, './hotLoader.js');
+
+const {ConcatSource, SourceMapSource, OriginalSource} = sources;
+const {Template, util: {createHash}} = webpack;
 
 const NS = path.dirname(fs.realpathSync(__filename));
 
@@ -17,7 +19,7 @@ const REGEXP_NAME = /\[name\]/i;
 
 class CssDependency extends webpack.Dependency {
   constructor(
-    { identifier, content, media, sourceMap },
+    {identifier, content, media, sourceMap},
     context,
     identifierIndex
   ) {
@@ -36,7 +38,8 @@ class CssDependency extends webpack.Dependency {
 }
 
 class CssDependencyTemplate {
-  apply() {}
+  apply() {
+  }
 }
 
 class CssModule extends webpack.Module {
@@ -62,7 +65,7 @@ class CssModule extends webpack.Module {
   readableIdentifier(requestShortener) {
     return `css ${requestShortener.shorten(this._identifier)}${
       this._identifierIndex ? ` (${this._identifierIndex})` : ''
-    }`;
+      }`;
   }
 
   nameForCondition() {
@@ -97,7 +100,7 @@ class CssModule extends webpack.Module {
 }
 
 class CssModuleFactory {
-  create({ dependencies: [dependency] }, callback) {
+  create({dependencies: [dependency]}, callback) {
     callback(null, new CssModule(dependency));
   }
 }
@@ -111,7 +114,7 @@ class MiniCssExtractPlugin {
       options
     );
     if (!this.options.chunkFilename) {
-      const { filename } = this.options;
+      const {filename} = this.options;
       const hasName = filename.includes('[name]');
       const hasId = filename.includes('[id]');
       const hasChunkHash = filename.includes('[chunkhash]');
@@ -129,6 +132,24 @@ class MiniCssExtractPlugin {
   }
 
   apply(compiler) {
+    const updatedRules = compiler.options.module.rules.reduce((rules, rule) => {
+      if (rule.use) {
+        const isMiniCss = rule.use.some((l) => {
+          const needle = l.loader || l;
+          console.log('NEEDLE:', needle, 'HAS:', needle.includes(pluginName));
+          return needle.includes(pluginName);
+        });
+        if (isMiniCss) {
+          rule.use.unshift(thing);
+        }
+      }
+      rules.push(rule);
+
+      return rules;
+    }, []);
+
+    compiler.options.module.rules = updatedRules;
+
     compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
       compilation.hooks.normalModuleLoader.tap(pluginName, (lc, m) => {
         const loaderContext = lc;
@@ -159,7 +180,7 @@ class MiniCssExtractPlugin {
       );
       compilation.mainTemplate.hooks.renderManifest.tap(
         pluginName,
-        (result, { chunk }) => {
+        (result, {chunk}) => {
           const renderedModules = Array.from(chunk.modulesIterable).filter(
             (module) => module.type === NS
           );
@@ -183,7 +204,7 @@ class MiniCssExtractPlugin {
       );
       compilation.chunkTemplate.hooks.renderManifest.tap(
         pluginName,
-        (result, { chunk }) => {
+        (result, {chunk}) => {
           const renderedModules = Array.from(chunk.modulesIterable).filter(
             (module) => module.type === NS
           );
@@ -208,7 +229,7 @@ class MiniCssExtractPlugin {
       compilation.mainTemplate.hooks.hashForChunk.tap(
         pluginName,
         (hash, chunk) => {
-          const { chunkFilename } = this.options;
+          const {chunkFilename} = this.options;
           if (REGEXP_CHUNKHASH.test(chunkFilename)) {
             hash.update(JSON.stringify(chunk.getChunkMaps(true).hash));
           }
@@ -223,20 +244,20 @@ class MiniCssExtractPlugin {
         }
       );
       compilation.hooks.contentHash.tap(pluginName, (chunk) => {
-        const { outputOptions } = compilation;
-        const { hashFunction, hashDigest, hashDigestLength } = outputOptions;
+        const {outputOptions} = compilation;
+        const {hashFunction, hashDigest, hashDigestLength} = outputOptions;
         const hash = createHash(hashFunction);
         for (const m of chunk.modulesIterable) {
           if (m.type === NS) {
             m.updateHash(hash);
           }
         }
-        const { contentHash } = chunk;
+        const {contentHash} = chunk;
         contentHash[NS] = hash
           .digest(hashDigest)
           .substring(0, hashDigestLength);
       });
-      const { mainTemplate } = compilation;
+      const {mainTemplate} = compilation;
       mainTemplate.hooks.localVars.tap(pluginName, (source, chunk) => {
         const chunkMap = this.getCssChunkObject(chunk);
         if (Object.keys(chunkMap).length > 0) {
@@ -274,7 +295,7 @@ class MiniCssExtractPlugin {
                       if (typeof chunkMaps.hash[chunkId] === 'string') {
                         shortChunkHashMap[chunkId] = chunkMaps.hash[
                           chunkId
-                        ].substring(0, length);
+                          ].substring(0, length);
                       }
                     }
                     return `" + ${JSON.stringify(
@@ -294,7 +315,7 @@ class MiniCssExtractPlugin {
                         if (typeof contentHash[chunkId] === 'string') {
                           shortContentHashMap[chunkId] = contentHash[
                             chunkId
-                          ].substring(0, length);
+                            ].substring(0, length);
                         }
                       }
                       return `" + ${JSON.stringify(
@@ -387,7 +408,7 @@ class MiniCssExtractPlugin {
       if (/^@import url/.test(m.content)) {
         // HACK for IE
         // http://stackoverflow.com/a/14676665/1458162
-        let { content } = m;
+        let {content} = m;
         if (m.media) {
           // insert media into the @import
           // this is rar
